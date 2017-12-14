@@ -55,12 +55,12 @@ catkin_package(
 ## Build ##
 ###########
 
-add_library(hector_gazebo_ros_baro src/gazebo_ros_baro.cpp)
-target_link_libraries(hector_gazebo_ros_baro ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
-add_dependencies(hector_gazebo_ros_baro hector_uav_msgs_generate_messages_cpp)
+add_library(hector_gazebo_ros_baro2 src/gazebo_ros_baro.cpp)
+target_link_libraries(hector_gazebo_ros_baro2 ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
+add_dependencies(hector_gazebo_ros_baro2 hector_uav_msgs_generate_messages_cpp)
 
-add_library(hector_gazebo_quadrotor_simple_controller src/gazebo_quadrotor_simple_controller.cpp)
-target_link_libraries(hector_gazebo_quadrotor_simple_controller ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
+add_library(hector_gazebo_quadrotor_simple_controller2 src/gazebo_quadrotor_simple_controller.cpp)
+target_link_libraries(hector_gazebo_quadrotor_simple_controller2 ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
 
 if(hector_quadrotor_propulsion_LIBRARY)
   add_library(hector_gazebo_quadrotor_propulsion src/gazebo_quadrotor_propulsion.cpp)
@@ -92,7 +92,7 @@ endif()
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS hector_gazebo_ros_baro hector_gazebo_quadrotor_simple_controller
+install(TARGETS hector_gazebo_ros_baro2 hector_gazebo_quadrotor_simple_controller2
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
