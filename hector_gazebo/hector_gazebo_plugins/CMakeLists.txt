@@ -65,8 +65,8 @@ catkin_package(
 ## Build ##
 ###########
 
-add_library(diffdrive_plugin_6w src/diffdrive_plugin_6w.cpp)
-target_link_libraries(diffdrive_plugin_6w ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
+add_library(diffdrive_plugin_6w_hector src/diffdrive_plugin_6w.cpp)
+target_link_libraries(diffdrive_plugin_6w_hector ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
 
 add_library(diffdrive_plugin_multi_wheel src/diffdrive_plugin_multi_wheel.cpp)
 target_link_libraries(diffdrive_plugin_multi_wheel ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
@@ -77,21 +77,21 @@ target_link_libraries(gazebo_ros_force_based_move ${Boost_LIBRARIES} ${GAZEBO_LI
 add_library(hector_gazebo_reset_plugin src/reset_plugin.cpp)
 target_link_libraries(hector_gazebo_reset_plugin ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
 
-add_library(hector_gazebo_ros_imu src/gazebo_ros_imu.cpp)
-target_link_libraries(hector_gazebo_ros_imu ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
-add_dependencies(hector_gazebo_ros_imu ${PROJECT_NAME}_generate_messages_cpp ${PROJECT_NAME}_gencfg)
+add_library(hector_gazebo_ros_imu_hector src/gazebo_ros_imu.cpp)
+target_link_libraries(hector_gazebo_ros_imu_hector ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
+add_dependencies(hector_gazebo_ros_imu_hector ${PROJECT_NAME}_generate_messages_cpp ${PROJECT_NAME}_gencfg)
 
-add_library(hector_gazebo_ros_magnetic src/gazebo_ros_magnetic.cpp)
-target_link_libraries(hector_gazebo_ros_magnetic ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
-add_dependencies(hector_gazebo_ros_magnetic ${PROJECT_NAME}_gencfg)
+add_library(hector_gazebo_ros_magnetic_hector src/gazebo_ros_magnetic.cpp)
+target_link_libraries(hector_gazebo_ros_magnetic_hector ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
+add_dependencies(hector_gazebo_ros_magnetic_hector ${PROJECT_NAME}_gencfg)
 
-add_library(hector_gazebo_ros_gps src/gazebo_ros_gps.cpp)
-target_link_libraries(hector_gazebo_ros_gps ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
-add_dependencies(hector_gazebo_ros_gps ${PROJECT_NAME}_gencfg)
+add_library(hector_gazebo_ros_gps_hector src/gazebo_ros_gps.cpp)
+target_link_libraries(hector_gazebo_ros_gps_hector ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
+add_dependencies(hector_gazebo_ros_gps_hector ${PROJECT_NAME}_gencfg)
 
-add_library(hector_gazebo_ros_sonar src/gazebo_ros_sonar.cpp)
-target_link_libraries(hector_gazebo_ros_sonar ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
-add_dependencies(hector_gazebo_ros_sonar ${PROJECT_NAME}_gencfg)
+add_library(hector_gazebo_ros_sonar_hector src/gazebo_ros_sonar.cpp)
+target_link_libraries(hector_gazebo_ros_sonar_hector ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
+add_dependencies(hector_gazebo_ros_sonar_hector ${PROJECT_NAME}_gencfg)
 
 add_library(hector_servo_plugin src/servo_plugin.cpp)
 target_link_libraries(hector_servo_plugin ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES} ${catkin_LIBRARIES})
@@ -110,14 +110,14 @@ install(DIRECTORY include/${PROJECT_NAME}/
 )
 
 install(TARGETS
-  diffdrive_plugin_6w
+  diffdrive_plugin_6w_hector
   diffdrive_plugin_multi_wheel
   gazebo_ros_force_based_move
   hector_gazebo_reset_plugin
-  hector_gazebo_ros_imu
-  hector_gazebo_ros_magnetic
-  hector_gazebo_ros_gps
-  hector_gazebo_ros_sonar
+  hector_gazebo_ros_imu_hector
+  hector_gazebo_ros_magnetic_hector
+  hector_gazebo_ros_gps_hector
+  hector_gazebo_ros_sonar_hector
   hector_servo_plugin
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
