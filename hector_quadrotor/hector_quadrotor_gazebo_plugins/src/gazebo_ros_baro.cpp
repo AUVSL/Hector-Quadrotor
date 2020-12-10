@@ -29,6 +29,7 @@
 #include <hector_quadrotor_gazebo_plugins/gazebo_ros_baro.h>
 #include <gazebo/common/Events.hh>
 #include <gazebo/physics/physics.hh>
+#include <ignition/math.hh>
 
 static const double DEFAULT_ELEVATION = 0.0;
 static const double DEFAULT_QNH       = 1013.25;
@@ -133,11 +134,11 @@ void GazeboRosBaro::Reset()
 // Update the controller
 void GazeboRosBaro::Update()
 {
-  common::Time sim_time = world->GetSimTime();
+  common::Time sim_time = world->SimTime();
   double dt = updateTimer.getTimeSinceLastUpdate().Double();
 
-  math::Pose pose = link->GetWorldPose();
-  double height = sensor_model_(pose.pos.z, dt);
+  ignition::math::Pose3 pose = link->WorldPose();
+  double height = sensor_model_(pose.Pos()[2], dt);
 
   if (height_publisher_) {
     height_.header.stamp = ros::Time(sim_time.sec, sim_time.nsec);

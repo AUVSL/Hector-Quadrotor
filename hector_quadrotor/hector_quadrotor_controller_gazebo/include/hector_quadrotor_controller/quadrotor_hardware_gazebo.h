@@ -38,6 +38,7 @@
 
 #include <ros/node_handle.h>
 #include <ros/callback_queue.h>
+#include <ignition/math.hh>
 
 namespace hector_quadrotor_controller_gazebo {
 
@@ -92,9 +93,10 @@ protected:
   gazebo::physics::ModelPtr model_;
   gazebo::physics::LinkPtr link_;
   gazebo::physics::PhysicsEnginePtr physics_;
+  ignition::math::Vector3d physics_test;
 
-  gazebo::math::Pose gz_pose_;
-  gazebo::math::Vector3 gz_velocity_, gz_acceleration_, gz_angular_velocity_;
+  ignition::math::Pose3d gz_pose_;
+  ignition::math::Vector3d gz_velocity_, gz_acceleration_, gz_angular_velocity_;
 
   ros::CallbackQueue callback_queue_;
   ros::Subscriber subscriber_state_;

@@ -29,7 +29,7 @@
 #include <hector_quadrotor_gazebo_plugins/gazebo_quadrotor_simple_controller.h>
 #include <gazebo/common/Events.hh>
 #include <gazebo/physics/physics.hh>
-
+#include <ignition/math.hh>
 #include <cmath>
 
 #include <geometry_msgs/Wrench.h>
@@ -44,7 +44,8 @@ GazeboQuadrotorSimpleController::GazeboQuadrotorSimpleController()
 // Destructor
 GazeboQuadrotorSimpleController::~GazeboQuadrotorSimpleController()
 {
-  event::Events::DisconnectWorldUpdateBegin(updateConnection);
+  //event::Events::DisconnectWorldUpdateBegin(updateConnection);
+  this->updateConnection.reset();
 
   node_handle_->shutdown();
   delete node_handle_;
@@ -98,8 +99,8 @@ void GazeboQuadrotorSimpleController::Load(physics::ModelPtr _model, sdf::Elemen
   controllers_.velocity_z.Load(_sdf, "velocityZ");
 
   // Get inertia and mass of quadrotor body
-  inertia = link->GetInertial()->GetPrincipalMoments();
-  mass = link->GetInertial()->GetMass();
+  inertia = link->GetInertial()->PrincipalMoments();
+  mass = link->GetInertial()->Mass();
 
   // Make sure the ROS node for Gazebo has already been initialized
   if (!ros::isInitialized())
@@ -197,19 +198,19 @@ void GazeboQuadrotorSimpleController::VelocityCallback(const geometry_msgs::Twis
 
 void GazeboQuadrotorSimpleController::ImuCallback(const sensor_msgs::ImuConstPtr& imu)
 {
-  pose.rot.Set(imu->orientation.w, imu->orientation.x, imu->orientation.y, imu->orientation.z);
-  euler = pose.rot.GetAsEuler();
-  angular_velocity = pose.rot.RotateVector(math::Vector3(imu->angular_velocity.x, imu->angular_velocity.y, imu->angular_velocity.z));
+  pose.Rot().Set(imu->orientation.w, imu->orientation.x, imu->orientation.y, imu->orientation.z);
+  euler = pose.Rot().Euler();
+  angular_velocity = pose.Rot().RotateVector(ignition::math::Vector3(imu->angular_velocity.x, imu->angular_velocity.y, imu->angular_velocity.z));
 }
 
 void GazeboQuadrotorSimpleController::StateCallback(const nav_msgs::OdometryConstPtr& state)
 {
-  math::Vector3 velocity1(velocity);
+	ignition::math::Vector3 velocity1(velocity);
 
   if (imu_topic_.empty()) {
-    pose.pos.Set(state->pose.pose.position.x, state->pose.pose.position.y, state->pose.pose.position.z);
-    pose.rot.Set(state->pose.pose.orientation.w, state->pose.pose.orientation.x, state->pose.pose.orientation.y, state->pose.pose.orientation.z);
-    euler = pose.rot.GetAsEuler();
+    pose.Pos().Set(state->pose.pose.position.x, state->pose.pose.position.y, state->pose.pose.position.z);
+    pose.Rot().Set(state->pose.pose.orientation.w, state->pose.pose.orientation.x, state->pose.pose.orientation.y, state->pose.pose.orientation.z);
+    euler = pose.Rot().Euler();
     angular_velocity.Set(state->twist.twist.angular.x, state->twist.twist.angular.y, state->twist.twist.angular.z);
   }
 
@@ -250,13 +251,13 @@ void GazeboQuadrotorSimpleController::Update()
   if (controlTimer.update(dt) && dt > 0.0) {
     // Get Pose/Orientation from Gazebo (if no state subscriber is active)
     if (imu_topic_.empty()) {
-      pose = link->GetWorldPose();
-      angular_velocity = link->GetWorldAngularVel();
-      euler = pose.rot.GetAsEuler();
+      pose = link->WorldPose();
+      angular_velocity = link->WorldAngularVel();
+      euler = pose.Rot().Euler();
     }
     if (state_topic_.empty()) {
-      acceleration = (link->GetWorldLinearVel() - velocity) / dt;
-      velocity = link->GetWorldLinearVel();
+      acceleration = (link->WorldLinearVel() - velocity) / dt;
+      velocity = link->WorldLinearVel();
     }
 
     // Auto engage/shutdown
@@ -264,7 +265,7 @@ void GazeboQuadrotorSimpleController::Update()
       if (!running_ && velocity_command_.linear.z > 0.1) {
         running_ = true;
         ROS_INFO_NAMED("quadrotor_simple_controller", "Engaging motors!");
-      } else if (running_ && controllers_.velocity_z.i < -1.0 && velocity_command_.linear.z < -0.1 && (velocity.z > -0.1 && velocity.z < 0.1)) {
+      } else if (running_ && controllers_.velocity_z.i < -1.0 && velocity_command_.linear.z < -0.1 && (velocity[2] > -0.1 && velocity[2] < 0.1)) {
         running_ = false;
         ROS_INFO_NAMED("quadrotor_simple_controller", "Shutting down motors!");
       }
@@ -279,30 +280,30 @@ void GazeboQuadrotorSimpleController::Update()
   //  }
 
     // Get gravity
-    math::Vector3 gravity_body = pose.rot.RotateVector(world->GetPhysicsEngine()->GetGravity());
-    double gravity = gravity_body.GetLength();
-    double load_factor = gravity * gravity / world->GetPhysicsEngine()->GetGravity().Dot(gravity_body);  // Get gravity
+    ignition::math::Vector3 gravity_body = pose.Rot().RotateVector(world->Gravity());
+    double gravity = gravity_body.Length();
+    double load_factor = gravity * gravity / world->Gravity().Dot(gravity_body);  // Get gravity
 
     // Rotate vectors to coordinate frames relevant for control
-    math::Quaternion heading_quaternion(cos(euler.z/2),0,0,sin(euler.z/2));
-    math::Vector3 velocity_xy = heading_quaternion.RotateVectorReverse(velocity);
-    math::Vector3 acceleration_xy = heading_quaternion.RotateVectorReverse(acceleration);
-    math::Vector3 angular_velocity_body = pose.rot.RotateVectorReverse(angular_velocity);
+    ignition::math::Quaterniond heading_quaternion(cos(euler.Z()/2),0,0,sin(euler.Z()/2));
+    ignition::math::Vector3d velocity_xy = heading_quaternion.RotateVectorReverse(velocity);
+    ignition::math::Vector3d acceleration_xy = heading_quaternion.RotateVectorReverse(acceleration);
+    ignition::math::Vector3d angular_velocity_body = pose.Rot().RotateVectorReverse(angular_velocity);
 
     // update controllers
     force.Set(0.0, 0.0, 0.0);
     torque.Set(0.0, 0.0, 0.0);
     if (running_) {
-      double pitch_command =  controllers_.velocity_x.update(velocity_command_.linear.x, velocity_xy.x, acceleration_xy.x, dt) / gravity;
-      double roll_command  = -controllers_.velocity_y.update(velocity_command_.linear.y, velocity_xy.y, acceleration_xy.y, dt) / gravity;
-      torque.x = inertia.x *  controllers_.roll.update(roll_command, euler.x, angular_velocity_body.x, dt);
-      torque.y = inertia.y *  controllers_.pitch.update(pitch_command, euler.y, angular_velocity_body.y, dt);
+      double pitch_command =  controllers_.velocity_x.update(velocity_command_.linear.x, velocity_xy.X(), acceleration_xy.X(), dt) / gravity;
+      double roll_command  = -controllers_.velocity_y.update(velocity_command_.linear.y, velocity_xy.Y(), acceleration_xy.Y(), dt) / gravity;
+      torque.X() = inertia.X() *  controllers_.roll.update(roll_command, euler.X(), angular_velocity_body.X(), dt);
+      torque.Y() = inertia.Y() *  controllers_.pitch.update(pitch_command, euler.Y(), angular_velocity_body.Y(), dt);
       // torque.x = inertia.x *  controllers_.roll.update(-velocity_command_.linear.y/gravity, euler.x, angular_velocity_body.x, dt);
       // torque.y = inertia.y *  controllers_.pitch.update(velocity_command_.linear.x/gravity, euler.y, angular_velocity_body.y, dt);
-      torque.z = inertia.z *  controllers_.yaw.update(velocity_command_.angular.z, angular_velocity.z, 0, dt);
-      force.z  = mass      * (controllers_.velocity_z.update(velocity_command_.linear.z,  velocity.z, acceleration.z, dt) + load_factor * gravity);
-      if (max_force_ > 0.0 && force.z > max_force_) force.z = max_force_;
-      if (force.z < 0.0) force.z = 0.0;
+      torque.Z() = inertia.Z() *  controllers_.yaw.update(velocity_command_.angular.z, angular_velocity.Z(), 0, dt);
+      force.Z()  = mass      * (controllers_.velocity_z.update(velocity_command_.linear.z,  velocity.Z(), acceleration.Z(), dt) + load_factor * gravity);
+      if (max_force_ > 0.0 && force.Z() > max_force_) force.Z() = max_force_;
+      if (force.Z() < 0.0) force.Z() = 0.0;
 
     } else {
       controllers_.roll.reset();
@@ -325,19 +326,19 @@ void GazeboQuadrotorSimpleController::Update()
     // Publish wrench
     if (wrench_publisher_) {
       geometry_msgs::Wrench wrench;
-      wrench.force.x = force.x;
-      wrench.force.y = force.y;
-      wrench.force.z = force.z;
-      wrench.torque.x = torque.x;
-      wrench.torque.y = torque.y;
-      wrench.torque.z = torque.z;
+      wrench.force.x = force.X();
+      wrench.force.y = force.Y();
+      wrench.force.z = force.Z();
+      wrench.torque.x = torque.X();
+      wrench.torque.y = torque.Y();
+      wrench.torque.z = torque.Z();
       wrench_publisher_.publish(wrench);
     }
   }
 
   // set force and torque in gazebo
   link->AddRelativeForce(force);
-  link->AddRelativeTorque(torque - link->GetInertial()->GetCoG().Cross(force));
+  link->AddRelativeTorque(torque - link->GetInertial()->CoG().Cross(force));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

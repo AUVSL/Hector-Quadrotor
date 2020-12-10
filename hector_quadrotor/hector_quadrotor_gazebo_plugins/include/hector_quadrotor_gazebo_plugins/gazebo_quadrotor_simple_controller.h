@@ -40,6 +40,9 @@
 #include <std_srvs/Empty.h>
 
 #include <hector_gazebo_plugins/update_timer.h>
+#include <ignition/math.hh>
+#include <ignition/math/Pose3.hh>
+
 
 namespace gazebo
 {
@@ -84,9 +87,9 @@ private:
   bool EngageCallback(std_srvs::Empty::Request&, std_srvs::Empty::Response&);
   bool ShutdownCallback(std_srvs::Empty::Request&, std_srvs::Empty::Response&);
 
-  ros::Time state_stamp;
-  math::Pose pose;
-  math::Vector3 euler, velocity, acceleration, angular_velocity;
+  ros::Time state_stamp; 
+  ignition::math::Pose3d pose; 
+  ignition::math::Vector3d euler, velocity, acceleration, angular_velocity;
 
   std::string link_name_;
   std::string namespace_;
@@ -129,10 +132,10 @@ private:
     PIDController velocity_z;
   } controllers_;
 
-  math::Vector3 inertia;
+  ignition::math::Vector3d inertia;
   double mass;
 
-  math::Vector3 force, torque;
+  ignition::math::Vector3d force, torque;
 
   UpdateTimer controlTimer;
   event::ConnectionPtr updateConnection;

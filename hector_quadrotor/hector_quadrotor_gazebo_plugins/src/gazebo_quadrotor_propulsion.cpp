@@ -34,11 +34,12 @@
 
 #include <rosgraph_msgs/Clock.h>
 #include <geometry_msgs/WrenchStamped.h>
+#include <ignition/math.hh>
 
 namespace gazebo {
 
 using namespace common;
-using namespace math;
+using namespace ignition::math;
 using namespace hector_quadrotor_model;
 
 GazeboQuadrotorPropulsion::GazeboQuadrotorPropulsion()
@@ -48,7 +49,7 @@ GazeboQuadrotorPropulsion::GazeboQuadrotorPropulsion()
 
 GazeboQuadrotorPropulsion::~GazeboQuadrotorPropulsion()
 {
-  event::Events::DisconnectWorldUpdateBegin(updateConnection);
+  this->updateConnection.reset();
   if (node_handle_) {
     node_handle_->shutdown();
     if (callback_queue_thread_.joinable())
@@ -191,7 +192,7 @@ void GazeboQuadrotorPropulsion::Load(physics::ModelPtr _model, sdf::ElementPtr _
 void GazeboQuadrotorPropulsion::Update()
 {
   // Get simulator time
-  Time current_time = world->GetSimTime();
+  Time current_time = world->SimTime();
   Time dt = current_time - last_time_;
   last_time_ = current_time;
   if (dt <= 0.0) return;
@@ -215,15 +216,15 @@ void GazeboQuadrotorPropulsion::Update()
 
   // fill input vector u for propulsion model
   geometry_msgs::Twist twist;
-  fromVector(link->GetRelativeLinearVel(), twist.linear);
-  fromVector(link->GetRelativeAngularVel(), twist.angular);
+  fromVector(link->RelativeLinearVel(), twist.linear);
+  fromVector(link->RelativeAngularVel(), twist.angular);
   model_.setTwist(twist);
 
   // update the model
   model_.update(dt.Double());
 
   // get wrench from model
-  Vector3 force, torque;
+  ignition::math::Vector3d force, torque;
   toVector(model_.getWrench().force, force);
   toVector(model_.getWrench().torque, torque);
 
@@ -252,7 +253,7 @@ void GazeboQuadrotorPropulsion::Update()
 
   // set force and torque in gazebo
   link->AddRelativeForce(force);
-  link->AddRelativeTorque(torque - link->GetInertial()->GetCoG().Cross(force));
+  link->AddRelativeTorque(torque - link->GetInertial()->CoG().Cross(force));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -102,16 +102,16 @@ template <typename T> static inline void checknan(T& value, const std::string& t
 
 template <typename Message, typename Vector> static inline void toVector(const Message& msg, Vector& vector)
 {
-  vector.x = msg.x;
-  vector.y = msg.y;
-  vector.z = msg.z;
+  vector.X() = msg.x;
+  vector.Y() = msg.y;
+  vector.Z() = msg.z;
 }
 
 template <typename Message, typename Vector> static inline void fromVector(const Vector& vector, Message& msg)
 {
-  msg.x = vector.x;
-  msg.y = vector.y;
-  msg.z = vector.z;
+  msg.x = vector.X();
+  msg.y = vector.Y();
+  msg.z = vector.Z();
 }
 
 template <typename Message, typename Quaternion> static inline void toQuaternion(const Message& msg, Quaternion& vector)
@@ -124,10 +124,10 @@ template <typename Message, typename Quaternion> static inline void toQuaternion
 
 template <typename Message, typename Quaternion> static inline void fromQuaternion(const Quaternion& vector, Message& msg)
 {
-  msg.w = vector.w;
-  msg.x = vector.x;
-  msg.y = vector.y;
-  msg.z = vector.z;
+  msg.w = vector.W();
+  msg.x = vector.X();
+  msg.y = vector.Y();
+  msg.z = vector.Z();
 }
 
 static inline geometry_msgs::Vector3 operator+(const geometry_msgs::Vector3& a, const geometry_msgs::Vector3& b)

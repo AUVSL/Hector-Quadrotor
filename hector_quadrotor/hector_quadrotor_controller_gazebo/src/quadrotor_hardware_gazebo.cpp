@@ -29,7 +29,7 @@
 #include <hector_quadrotor_controller/quadrotor_hardware_gazebo.h>
 
 #include <geometry_msgs/WrenchStamped.h>
-
+#include <ignition/math.hh>
 namespace hector_quadrotor_controller_gazebo {
 
 QuadrotorHardwareSim::QuadrotorHardwareSim()
@@ -57,7 +57,9 @@ bool QuadrotorHardwareSim::initSim(
   // store parent model pointer
   model_ = parent_model;
   link_ = model_->GetLink();
-  physics_ = model_->GetWorld()->GetPhysicsEngine();
+  ignition::math::Vector3d physics_test = model_->GetWorld()->Gravity();
+  //physics_ = model_->GetWorld()->Gravity();
+  
 
   model_nh.param<std::string>("world_frame", world_frame_, "world");
   model_nh.param<std::string>("base_link_frame", base_link_frame_, "base_link");
@@ -108,11 +110,11 @@ bool QuadrotorHardwareSim::initSim(
 
 bool QuadrotorHardwareSim::getMassAndInertia(double &mass, double inertia[3]) {
   if (!link_) return false;
-  mass = link_->GetInertial()->GetMass();
-  gazebo::math::Vector3 Inertia = link_->GetInertial()->GetPrincipalMoments();
-  inertia[0] = Inertia.x;
-  inertia[1] = Inertia.y;
-  inertia[2] = Inertia.z;
+  mass = link_->GetInertial()->Mass();
+  ignition::math::Vector3d Inertia = link_->GetInertial()->PrincipalMoments();
+  inertia[0] = Inertia.X();
+  inertia[1] = Inertia.Y();
+  inertia[2] = Inertia.Z();
   return true;
 }
 
@@ -148,47 +150,48 @@ void QuadrotorHardwareSim::readSim(ros::Time time, ros::Duration period)
 
   // read state from Gazebo
   const double acceleration_time_constant = 0.1;
-  gz_pose_             =  link_->GetWorldPose();
-  gz_acceleration_     = ((link_->GetWorldLinearVel() - gz_velocity_) + acceleration_time_constant * gz_acceleration_) / (period.toSec() + acceleration_time_constant);
-  gz_velocity_         =  link_->GetWorldLinearVel();
-  gz_angular_velocity_ =  link_->GetWorldAngularVel();
+  gz_pose_             =  link_->WorldPose();
+  gz_acceleration_     = ((link_->WorldLinearVel() - gz_velocity_) + acceleration_time_constant * gz_acceleration_) / (period.toSec() + acceleration_time_constant);
+  gz_velocity_         =  link_->WorldLinearVel();
+  gz_angular_velocity_ =  link_->WorldAngularVel();
 
   if (!subscriber_state_) {
     header_.frame_id = world_frame_;
     header_.stamp = time;
-    pose_.position.x = gz_pose_.pos.x;
-    pose_.position.y = gz_pose_.pos.y;
-    pose_.position.z = gz_pose_.pos.z;
-    pose_.orientation.w = gz_pose_.rot.w;
-    pose_.orientation.x = gz_pose_.rot.x;
-    pose_.orientation.y = gz_pose_.rot.y;
-    pose_.orientation.z = gz_pose_.rot.z;
-    twist_.linear.x = gz_velocity_.x;
-    twist_.linear.y = gz_velocity_.y;
-    twist_.linear.z = gz_velocity_.z;
-    twist_.angular.x = gz_angular_velocity_.x;
-    twist_.angular.y = gz_angular_velocity_.y;
-    twist_.angular.z = gz_angular_velocity_.z;
-    acceleration_.x = gz_acceleration_.x;
-    acceleration_.y = gz_acceleration_.y;
-    acceleration_.z = gz_acceleration_.z;
+    pose_.position.x = gz_pose_.Pos().X();
+    pose_.position.y = gz_pose_.Pos().Y();
+    pose_.position.z = gz_pose_.Pos().Z();
+    pose_.orientation.w = gz_pose_.Rot().W();
+    pose_.orientation.x = gz_pose_.Rot().X();
+    pose_.orientation.y = gz_pose_.Rot().Y();
+    pose_.orientation.z = gz_pose_.Rot().Z();
+    twist_.linear.x = gz_velocity_.X();
+    twist_.linear.y = gz_velocity_.Y();
+    twist_.linear.z = gz_velocity_.Z();
+    twist_.angular.x = gz_angular_velocity_.X();
+    twist_.angular.y = gz_angular_velocity_.Y();
+    twist_.angular.z = gz_angular_velocity_.Z();
+    acceleration_.x = gz_acceleration_.X();
+    acceleration_.y = gz_acceleration_.Y();
+    acceleration_.z = gz_acceleration_.Z();
   }
 
   if (!subscriber_imu_) {
-    imu_.orientation.w = gz_pose_.rot.w;
-    imu_.orientation.x = gz_pose_.rot.x;
-    imu_.orientation.y = gz_pose_.rot.y;
-    imu_.orientation.z = gz_pose_.rot.z;
+    imu_.orientation.w = gz_pose_.Rot().W();
+    imu_.orientation.x = gz_pose_.Rot().X();
+    imu_.orientation.y = gz_pose_.Rot().Y();
+    imu_.orientation.z = gz_pose_.Rot().Z();
 
-    gazebo::math::Vector3 gz_angular_velocity_body = gz_pose_.rot.RotateVectorReverse(gz_angular_velocity_);
-    imu_.angular_velocity.x = gz_angular_velocity_body.x;
-    imu_.angular_velocity.y = gz_angular_velocity_body.y;
-    imu_.angular_velocity.z = gz_angular_velocity_body.z;
+    ignition::math::Vector3d gz_angular_velocity_body = gz_pose_.Rot().RotateVectorReverse(gz_angular_velocity_);
+    imu_.angular_velocity.x = gz_angular_velocity_body.X();
+    imu_.angular_velocity.y = gz_angular_velocity_body.Y();
+    imu_.angular_velocity.z = gz_angular_velocity_body.Z();
 
-    gazebo::math::Vector3 gz_linear_acceleration_body = gz_pose_.rot.RotateVectorReverse(gz_acceleration_ - physics_->GetGravity());
-    imu_.linear_acceleration.x = gz_linear_acceleration_body.x;
-    imu_.linear_acceleration.y = gz_linear_acceleration_body.y;
-    imu_.linear_acceleration.z = gz_linear_acceleration_body.z;
+        
+    ignition::math::Vector3d gz_linear_acceleration_body = gz_pose_.Rot().RotateVectorReverse(gz_acceleration_ - physics_test);
+    imu_.linear_acceleration.x = gz_linear_acceleration_body.X();
+    imu_.linear_acceleration.y = gz_linear_acceleration_body.Y();
+    imu_.linear_acceleration.z = gz_linear_acceleration_body.Z();
   }
 }
 
@@ -209,10 +212,10 @@ void QuadrotorHardwareSim::writeSim(ros::Time time, ros::Duration period)
     publisher_wrench_command_.publish(wrench);
 
     if (!result_written) {
-      gazebo::math::Vector3 force(wrench.wrench.force.x, wrench.wrench.force.y, wrench.wrench.force.z);
-      gazebo::math::Vector3 torque(wrench.wrench.torque.x, wrench.wrench.torque.y, wrench.wrench.torque.z);
+      ignition::math::Vector3d force(wrench.wrench.force.x, wrench.wrench.force.y, wrench.wrench.force.z);
+      ignition::math::Vector3d torque(wrench.wrench.torque.x, wrench.wrench.torque.y, wrench.wrench.torque.z);
       link_->AddRelativeForce(force);
-      link_->AddRelativeTorque(torque - link_->GetInertial()->GetCoG().Cross(force));
+      link_->AddRelativeTorque(torque - link_->GetInertial()->CoG().Cross(force));
     }
   }
 }

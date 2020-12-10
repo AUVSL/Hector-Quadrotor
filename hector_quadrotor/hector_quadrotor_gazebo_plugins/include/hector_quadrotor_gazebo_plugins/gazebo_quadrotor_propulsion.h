@@ -31,7 +31,7 @@
 
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/common/Time.hh>
-#include <gazebo/math/Vector3.hh>
+//#include <gazebo/math/Vector3.hh>
 
 #include <ros/callback_queue.h>
 #include <ros/ros.h>
@@ -40,6 +40,7 @@
 #include <hector_gazebo_plugins/update_timer.h>
 
 #include <boost/thread.hpp>
+#include <ignition/math.hh>
 
 namespace gazebo
 {

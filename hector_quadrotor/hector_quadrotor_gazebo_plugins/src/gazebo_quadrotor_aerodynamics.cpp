@@ -33,11 +33,11 @@
 #include <gazebo/physics/physics.hh>
 
 #include <geometry_msgs/WrenchStamped.h>
-
+#include <ignition/math.hh>
 namespace gazebo {
 
 using namespace common;
-using namespace math;
+using namespace ignition::math;
 using namespace hector_quadrotor_model;
 
 GazeboQuadrotorAerodynamics::GazeboQuadrotorAerodynamics()
@@ -47,7 +47,8 @@ GazeboQuadrotorAerodynamics::GazeboQuadrotorAerodynamics()
 
 GazeboQuadrotorAerodynamics::~GazeboQuadrotorAerodynamics()
 {
-  event::Events::DisconnectWorldUpdateBegin(updateConnection);
+  //event::Events::DisconnectWorldUpdateBegin(updateConnection);
+  updateConnection.reset();
   if (node_handle_) {
     node_handle_->shutdown();
     if (callback_queue_thread_.joinable())
@@ -128,7 +129,7 @@ void GazeboQuadrotorAerodynamics::Load(physics::ModelPtr _model, sdf::ElementPtr
 void GazeboQuadrotorAerodynamics::Update()
 {
   // Get simulator time
-  Time current_time = world->GetSimTime();
+  Time current_time = world->SimTime();
   Time dt = current_time - last_time_;
   last_time_ = current_time;
   if (dt <= 0.0) return;
@@ -138,19 +139,19 @@ void GazeboQuadrotorAerodynamics::Update()
 
   // fill input vector u for drag model
   geometry_msgs::Quaternion orientation;
-  fromQuaternion(link->GetWorldPose().rot, orientation);
+  fromQuaternion(link->WorldPose().Rot(), orientation);
   model_.setOrientation(orientation);
 
   geometry_msgs::Twist twist;
-  fromVector(link->GetWorldLinearVel(), twist.linear);
-  fromVector(link->GetWorldAngularVel(), twist.angular);
+  fromVector(link->WorldLinearVel(), twist.linear);
+  fromVector(link->WorldAngularVel(), twist.angular);
   model_.setTwist(twist);
 
   // update the model
   model_.update(dt.Double());
 
   // get wrench from model
-  Vector3 force, torque;
+  ignition::math::Vector3d force, torque;
   toVector(model_.getWrench().force, force);
   toVector(model_.getWrench().torque, torque);
 
@@ -165,7 +166,7 @@ void GazeboQuadrotorAerodynamics::Update()
 
   // set force and torque in gazebo
   link->AddRelativeForce(force);
-  link->AddRelativeTorque(torque - link->GetInertial()->GetCoG().Cross(force));
+  link->AddRelativeTorque(torque - link->GetInertial()->CoG().Cross(force));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
