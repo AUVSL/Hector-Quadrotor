@@ -16,12 +16,12 @@
           <origin xyz="0 0 0" rpy="0 0 0" />
           <inertia ixx="2.632e-4" ixy="0" ixz="0" iyy="2.632e-4" iyz="0" izz="1.62e-4" />
         </inertial>
-        <visual>
+        <!-- <visual>
           <origin xyz="0 0 0" rpy="0 0 0" />
           <geometry>
           <mesh filename="package://hector_sensors_description/meshes/hokuyo_utm30lx/hokuyo_utm_30lx$(optenv TEST_SELF_FILTER).dae"/>
         </geometry>
-        </visual>
+        </visual> -->
         <collision>
           <origin xyz="0 0 -0.0115" rpy="0 0 0" />
           <geometry>
