@@ -5,7 +5,7 @@
   <!-- Quadrotor Sensor Plugins -->
   <xacro:macro name="quadrotor_sensors">
         <gazebo>
-          <plugin name="quadrotor_imu_sim" filename="libhector_gazebo_ros_imu.so">
+          <plugin name="quadrotor_imu_sim" filename="libhector_gazebo_ros_imu_hector.so">
             <updateRate>100.0</updateRate>
             <bodyName>base_link</bodyName>
             <frameId>$(arg base_link_frame)</frameId>
@@ -18,7 +18,7 @@
             <rateGaussianNoise>0.05 0.05 0.015</rateGaussianNoise>
           </plugin>
 
-          <plugin name="quadrotor_baro_sim" filename="libhector_gazebo_ros_baro.so">
+          <plugin name="quadrotor_baro_sim" filename="libhector_gazebo_ros_baro2.so">
             <updateRate>10.0</updateRate>
             <bodyName>base_link</bodyName>
             <frameId>$(arg base_link_frame)</frameId>
@@ -29,7 +29,7 @@
             <gaussianNoise>0.1</gaussianNoise>
           </plugin>
 
-          <plugin name="quadrotor_magnetic_sim" filename="libhector_gazebo_ros_magnetic.so">
+          <plugin name="quadrotor_magnetic_sim" filename="libhector_gazebo_ros_magnetic_hector.so">
             <updateRate>10.0</updateRate>
             <bodyName>base_link</bodyName>
             <frameId>$(arg base_link_frame)</frameId>
@@ -39,7 +39,7 @@
             <gaussianNoise>1.3e-2 1.3e-2 1.3e-2</gaussianNoise>
           </plugin>
 
-          <plugin name="quadrotor_gps_sim" filename="libhector_gazebo_ros_gps.so">
+          <plugin name="quadrotor_gps_sim" filename="libhector_gazebo_ros_gps_hector.so">
             <updateRate>4.0</updateRate>
             <bodyName>base_link</bodyName>
             <frameId>$(arg base_link_frame)</frameId>
