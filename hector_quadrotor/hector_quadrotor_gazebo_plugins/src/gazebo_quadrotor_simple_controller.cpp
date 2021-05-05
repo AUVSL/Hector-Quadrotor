@@ -200,12 +200,12 @@ void GazeboQuadrotorSimpleController::ImuCallback(const sensor_msgs::ImuConstPtr
 {
   pose.Rot().Set(imu->orientation.w, imu->orientation.x, imu->orientation.y, imu->orientation.z);
   euler = pose.Rot().Euler();
-  angular_velocity = pose.Rot().RotateVector(ignition::math::Vector3(imu->angular_velocity.x, imu->angular_velocity.y, imu->angular_velocity.z));
+  angular_velocity = pose.Rot().RotateVector(ignition::math::Vector3d(imu->angular_velocity.x, imu->angular_velocity.y, imu->angular_velocity.z));
 }
 
 void GazeboQuadrotorSimpleController::StateCallback(const nav_msgs::OdometryConstPtr& state)
 {
-	ignition::math::Vector3 velocity1(velocity);
+	ignition::math::Vector3d velocity1(velocity);
 
   if (imu_topic_.empty()) {
     pose.Pos().Set(state->pose.pose.position.x, state->pose.pose.position.y, state->pose.pose.position.z);
@@ -280,7 +280,7 @@ void GazeboQuadrotorSimpleController::Update()
   //  }
 
     // Get gravity
-    ignition::math::Vector3 gravity_body = pose.Rot().RotateVector(world->Gravity());
+    ignition::math::Vector3d gravity_body = pose.Rot().RotateVector(world->Gravity());
     double gravity = gravity_body.Length();
     double load_factor = gravity * gravity / world->Gravity().Dot(gravity_body);  // Get gravity
 
